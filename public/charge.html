@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>資金管理</title>
+</head>
+<body>
+<h1>資金管理系統</h1>
+<form id="charge-form">
+    <label for="amount">金額:</label>
+    <input type="number" id="amount" name="amount" required>
+    <label for="category">項目:</label>
+    <select id="category" name="category" required>
+        <option value="food">食物</option>
+        <option value="clothing">治裝</option>
+        <option value="entertainment">娛樂</option>
+        <option value="others">其他</option>
+    </select>
+    <button type="submit">確認</button>
+</form>
+<div id="output"></div>
+
+<script>
+    document.getElementById('charge-form').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const amount = document.getElementById('amount').value;
+        const category = document.getElementById('category').value;
+        const response = await fetch('/charge', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ amount, category })
+        });
+        const result = await response.json();
+        document.getElementById('output').innerText = JSON.stringify(result);
+    });
+</script>
+</body>
+</html>
