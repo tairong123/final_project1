@@ -25,12 +25,23 @@
       border: 1px solid #ccc;
       border-radius: 5px;
     }
+    .back-button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
   </style>
 </head>
 <body>
 <h1>金融產品教學系統</h1>
 <div id="products"></div>
 <div id="product-info"></div>
+<button class="back-button" onclick="window.location.href='index.html'">返回首頁</button>
 
 <script>
   const products = {
