@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>金融產品教學</title>
+  <style>
+    #products {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .product-button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    #product-info {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+<h1>金融產品教學系統</h1>
+<div id="products"></div>
+<div id="product-info"></div>
+
+<script>
+  const products = {
+    "股票": "股票是代表公司所有權的證券。當你購買股票時，你實際上擁有了該公司的部分股份。",
+    "債券": "債券是一種債務投資工具，投資者向發行人貸款，發行人承諾在未來的特定日期支付本金和利息。",
+    "基金": "基金是一種集體投資計劃，通過集合投資者的資金來購買一籃子證券，如股票和債券。",
+    "ETF": "ETF 是交易所交易基金，可以像股票一樣在證券交易所買賣，並且通常具有更低的費用。",
+    "期貨": "期貨是一種金融合約，買賣雙方承諾在未來的某個日期以特定價格買入或賣出資產。",
+    "外匯": "外匯市場是全球性的分散市場，用於貨幣交易，是全球最大的金融市場。",
+    "保險": "保險是一種風險管理工具，投保人支付保費，保險公司承擔某些損失的風險。",
+    "儲蓄": "儲蓄是指將部分收入存放在銀行中，以便在未來使用，通常能夠賺取利息。",
+    "信託": "信託是一種財務安排，其中一方（受託人）代表另一方（受益人）持有資產。",
+    "退休計劃": "退休計劃是個人為了在退休後獲得收入而建立的長期儲蓄計劃。"
+  };
+
+  const productsContainer = document.getElementById('products');
+  const productInfo = document.getElementById('product-info');
+
+  Object.keys(products).forEach(product => {
+    const button = document.createElement('button');
+    button.className = 'product-button';
+    button.innerText = product;
+    button.addEventListener('click', () => {
+      productInfo.innerText = products[product];
+    });
+    productsContainer.appendChild(button);
+  });
+</script>
+</body>
+</html>
