@@ -70,4 +70,209 @@ app.post('/api/charge_add', (req, res) => {
   db.close(); // 關閉資料庫
 });
 
+app.post('/api/get_month_total_money', (req, res) => {
+  const { month, year } = req.body;
+
+  // Debugging: Log the received month and year
+  console.log(`Received month: ${month}, year: ${year}`);
+
+  const query = `SELECT * FROM charge WHERE month=? AND year=?`;
+  const totalCostQuery = `SELECT SUM(cost) AS totalCost FROM charge WHERE month=? AND year=?`;
+
+  const db = new sqlite3.Database(dbFile);
+
+  db.all(query, [month, year], (err, rows) => {
+    if (err) {
+      console.error('獲取記錄錯誤:', err);
+      return res.status(500).json({ error: '無法獲取記錄' });
+    }
+
+    if (rows.length === 0) {
+      // No records found for the given month and year
+      console.log('No records found for the given month and year.');
+      return res.json({ records: [], totalCost: 0 });
+    }
+
+    // Debugging: Log the rows returned by the query
+    console.log('Found records:', rows);
+
+    db.get(totalCostQuery, [month, year], (err, totalResult) => {
+      if (err) {
+        console.error('計算總花費錯誤:', err);
+        return res.status(500).json({ error: '無法計算總花費' });
+      }
+
+      // Return the records and total cost
+      res.json({
+        records: rows,
+        totalCost: totalResult ? totalResult.totalCost : 0,
+      });
+    });
+  });
+
+  db.close();
+});
+
+app.post('/api/get_total_money', (req, res) => {
+
+  const query = `SELECT * FROM charge`;
+  const totalCostQuery = `SELECT SUM(cost) AS totalCost FROM charge`;
+
+  const db = new sqlite3.Database(dbFile);
+
+  db.all(query, [], (err, rows) => {
+    if (err) {
+      console.error('獲取記錄錯誤:', err);
+      return res.status(500).json({ error: '無法獲取記錄' });
+    }
+
+    if (rows.length === 0) {
+      // No records found for the given month and year
+      console.log('No records found for the given month and year.');
+      return res.json({ totalCost: 0 });
+    }
+
+    // Debugging: Log the rows returned by the query
+    console.log('Found records:', rows);
+
+    db.get(totalCostQuery, [], (err, totalResult) => {
+      if (err) {
+        console.error('計算總花費錯誤:', err);
+        return res.status(500).json({ error: '無法計算總花費' });
+      }
+
+      // Return the records and total cost
+      res.json({
+        totalCost: totalResult ? totalResult.totalCost : 0,
+      });
+    });
+  });
+
+  db.close();
+});
+
+app.post('/api/get_month_income', (req, res) => {
+  const { month, year } = req.body;
+
+  // Debugging: Log the received month and year
+  console.log(`Received month: ${month}, year: ${year}`);
+
+  const query = `SELECT * FROM charge WHERE month=? AND year=? AND cost > 0`;  // Only include positive costs
+  const totalCostQuery = `SELECT SUM(cost) AS totalCost FROM charge WHERE month=? AND year=? AND cost > 0`;  // Only sum positive costs
+
+  const db = new sqlite3.Database(dbFile);
+
+  db.all(query, [month, year], (err, rows) => {
+    if (err) {
+      console.error('獲取記錄錯誤:', err);
+      return res.status(500).json({ error: '無法獲取記錄' });
+    }
+
+    if (rows.length === 0) {
+      // No records found for the given month and year
+      console.log('No records found for the given month and year.');
+      return res.json({ records: [], totalCost: 0 });
+    }
+
+    // Debugging: Log the rows returned by the query
+    console.log('Found records:', rows);
+
+    db.get(totalCostQuery, [month, year], (err, totalResult) => {
+      if (err) {
+        console.error('計算總花費錯誤:', err);
+        return res.status(500).json({ error: '無法計算總花費' });
+      }
+
+      // Return the records and total cost
+      res.json({
+        records: rows,
+        totalCost: totalResult ? totalResult.totalCost : 0,
+      });
+    });
+  });
+
+  db.close();
+});
+
+app.post('/api/get_month_cost', (req, res) => {
+  const { month, year } = req.body;
+
+  // Debugging: Log the received month and year
+  console.log(`Received month: ${month}, year: ${year}`);
+
+  const query = `SELECT * FROM charge WHERE month=? AND year=? AND cost < 0`;  // Only include positive costs
+  const totalCostQuery = `SELECT SUM(cost) AS totalCost FROM charge WHERE month=? AND year=? AND cost < 0`;  // Only sum positive costs
+
+  const db = new sqlite3.Database(dbFile);
+
+  db.all(query, [month, year], (err, rows) => {
+    if (err) {
+      console.error('獲取記錄錯誤:', err);
+      return res.status(500).json({ error: '無法獲取記錄' });
+    }
+
+    if (rows.length === 0) {
+      // No records found for the given month and year
+      console.log('No records found for the given month and year.');
+      return res.json({ records: [], totalCost: 0 });
+    }
+
+    // Debugging: Log the rows returned by the query
+    console.log('Found records:', rows);
+
+    db.get(totalCostQuery, [month, year], (err, totalResult) => {
+      if (err) {
+        console.error('計算總花費錯誤:', err);
+        return res.status(500).json({ error: '無法計算總花費' });
+      }
+
+      // Return the records and total cost
+      res.json({
+        records: rows,
+        totalCost: totalResult ? totalResult.totalCost : 0,
+      });
+    });
+  });
+
+  db.close();
+});
+
+app.post('/api/get_type_month_cost', (req, res) => {
+  const { month, year } = req.body;
+
+  // Debugging: Log the received month and year
+  console.log(`Received month: ${month}, year: ${year}`);
+
+  const totalCostQuery = `
+    SELECT type, SUM(cost) AS totalCost
+    FROM charge
+    WHERE month=? AND year=?
+    GROUP BY type`;  // Group by type and sum costs
+
+  const db = new sqlite3.Database(dbFile);
+
+  db.all(totalCostQuery, [month, year], (err, totalResult) => {
+    if (err) {
+      console.error('計算總花費錯誤:', err);
+      return res.status(500).json({ error: '無法計算總花費' });
+    }
+
+    if (totalResult.length === 0) {
+      // No records found for the given month and year
+      console.log('No records found for the given month and year.');
+      return res.json({ totalCostByType: [] });
+    }
+
+    // Return the total cost grouped by type
+    res.json({
+      totalCostByType: totalResult || [],
+    });
+  });
+
+  db.close();
+});
+
+
+
+
 module.exports = app;
