@@ -1,28 +1,15 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-var sqlite3 = require('sqlite3').verbose(); // 引入 sqlite3
+const sqlite3 = require('sqlite3').verbose();
+const fs = require('fs');
+const path = require('path');
+const express = require('express');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
-var chargeRouter = require('./routes/charge'); // 引入 chargeRouter
+const indexRouter = require('./routes/index');
+const usersRouter = require('./routes/users');
 
-var app = express();
-
-// 設置 SQLite 資料庫連線
-var db = new sqlite3.Database('./db/SQLite.sql', (err) => {
-  if (err) {
-    console.error('資料庫連線失敗：', err.message);
-  } else {
-    console.log('成功連接到 SQLite 資料庫');
-  }
-});
-
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'pug');
+// 初始化 Express 應用
+const app = express();
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -30,40 +17,48 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use((req, res, next) => {
-  req.db = db; // 將資料庫物件綁定到 req，供路由存取
-  next();
-});
+// 資料庫檔案路徑
+const dbFile = './db/SQLite.db';
+const sqlScript = './db/SQLite.sql';
 
+// 初始化資料庫
+if (!fs.existsSync(dbFile)) {
+  console.log('資料庫檔案不存在，正在初始化...');
+  const db = new sqlite3.Database(dbFile);
+
+  try {
+    const initSQL = fs.readFileSync(sqlScript, 'utf8'); // 讀取 SQL 腳本
+    db.exec(initSQL, (err) => {
+      if (err) {
+        console.error('執行 SQL 腳本失敗：', err.message);
+      } else {
+        console.log('資料庫初始化成功');
+      }
+    });
+  } catch (err) {
+    console.error('讀取 SQL 腳本失敗：', err.message);
+  }
+
+  db.close();
+} else {
+  console.log('資料庫檔案已存在');
+}
+
+// 你的其他 API 路由
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-app.use('/charge', chargeRouter); // 設置 /charge 路由
-
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
-});
-
-// error handler
-app.use(function(err, req, res, next) {
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  res.status(err.status || 500);
-  res.render('error');
-});
 
 app.post('/api/charge_add', (req, res) => {
-
   const { cost, type, year, month, day } = req.body;
-
 
   if (!cost || !type || !year || !month || !day) {
     return res.status(400).json({ error: '所有欄位皆為必填' });
   }
 
+  const db = new sqlite3.Database(dbFile); // 打開資料庫
   const query = `INSERT INTO charge (cost, type, year, month, day) VALUES (?, ?, ?, ?, ?)`;
-  req.db.run(query, [cost, type, year, month, day], function (err) {
+
+  db.run(query, [cost, type, year, month, day], function (err) {
     if (err) {
       console.error('新增資料失敗：', err.message);
       return res.status(500).json({ error: '新增資料失敗' });
@@ -71,21 +66,8 @@ app.post('/api/charge_add', (req, res) => {
 
     res.status(200).json({ message: '資料新增成功', id: this.lastID });
   });
-});
 
-
-
-
-// 關閉伺服器時關閉資料庫連線
-process.on('SIGINT', () => {
-  db.close((err) => {
-    if (err) {
-      console.error('關閉資料庫連線時發生錯誤：', err.message);
-    } else {
-      console.log('資料庫連線已關閉');
-    }
-    process.exit(0);
-  });
+  db.close(); // 關閉資料庫
 });
 
 module.exports = app;

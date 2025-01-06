@@ -8,11 +8,11 @@
 <body>
 <h1>資金管理系統</h1>
 <form id="charge-form">
-    <label for="amount">金額:</label>
-    <input type="number" id="amount" name="amount" required>
+    <label for="cost">金額:</label>
+    <input type="number" id="cost" name="cost" required>
 
-    <label for="category">項目:</label>
-    <select id="category" name="category" required>
+    <label for="type">項目:</label>
+    <select id="type" name="type" required>
         <option value="food">食物</option>
         <option value="clothing">治裝</option>
         <option value="entertainment">娛樂</option>
@@ -51,7 +51,25 @@
 
     <button type="submit">確認</button>
 </form>
+
 <div id="output"></div>
+
+<!-- 表格區域 -->
+<h2>記帳紀錄</h2>
+<table id="records-table" border="1" style="width: 100%; border-collapse: collapse; text-align: center;">
+    <thead>
+    <tr>
+        <th>金額</th>
+        <th>種類</th>
+        <th>年</th>
+        <th>月</th>
+        <th>日</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- 動態新增的資料會出現在這裡 -->
+    </tbody>
+</table>
 
 <script>
     document.getElementById('charge-form').addEventListener('submit', function (event) {
@@ -64,7 +82,7 @@
         fetch('/api/charge_add', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',//我想看內容
+                'Content-Type': 'application/json',
             },
             body: JSON.stringify(data),
         })
@@ -75,6 +93,7 @@
                     output.textContent = `錯誤：${result.error}`;
                 } else {
                     output.textContent = `成功新增資料，ID: ${result.id}`;
+                    addRecordToTable(data); // 將資料新增到表格中
                 }
             })
             .catch((error) => {
@@ -82,6 +101,22 @@
             });
     });
 
+    function addRecordToTable(record) {
+        const tableBody = document.querySelector('#records-table tbody');
+        const newRow = document.createElement('tr');
+
+        // 動態創建表格內容
+        newRow.innerHTML = `
+            <td>${record.cost}</td>
+            <td>${record.type}</td>
+            <td>${record.year}</td>
+            <td>${record.month}</td>
+            <td>${record.day}</td>
+        `;
+
+        // 將新行加入表格
+        tableBody.appendChild(newRow);
+    }
 
     function updateDays() {
         const year = document.getElementById('year').value;
@@ -103,7 +138,6 @@
     document.getElementById('year').addEventListener('change', updateDays);
     document.getElementById('month').addEventListener('change', updateDays);
     window.onload = updateDays;
-
 
 </script>
 
