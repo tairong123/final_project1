@@ -53,6 +53,29 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
+app.post('/api/charge_add', (req, res) => {
+
+  const { cost, type, year, month, day } = req.body;
+
+
+  if (!cost || !type || !year || !month || !day) {
+    return res.status(400).json({ error: '所有欄位皆為必填' });
+  }
+
+  const query = `INSERT INTO charge (cost, type, year, month, day) VALUES (?, ?, ?, ?, ?)`;
+  req.db.run(query, [cost, type, year, month, day], function (err) {
+    if (err) {
+      console.error('新增資料失敗：', err.message);
+      return res.status(500).json({ error: '新增資料失敗' });
+    }
+
+    res.status(200).json({ message: '資料新增成功', id: this.lastID });
+  });
+});
+
+
+
+
 // 關閉伺服器時關閉資料庫連線
 process.on('SIGINT', () => {
   db.close((err) => {

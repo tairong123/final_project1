@@ -10,6 +10,7 @@
 <form id="charge-form">
     <label for="amount">金額:</label>
     <input type="number" id="amount" name="amount" required>
+
     <label for="category">項目:</label>
     <select id="category" name="category" required>
         <option value="food">食物</option>
@@ -17,23 +18,94 @@
         <option value="entertainment">娛樂</option>
         <option value="others">其他</option>
     </select>
+
+    <label for="year">年:</label>
+    <select id="year" name="year" required>
+        <script>
+            const currentYear = new Date().getFullYear();
+            for (let year = currentYear; year >= currentYear - 10; year--) {
+                document.write(`<option value="${year}">${year}</option>`);
+            }
+        </script>
+    </select>
+
+    <label for="month">月:</label>
+    <select id="month" name="month" required onchange="updateDays()">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+        <option value="11">11</option>
+        <option value="12">12</option>
+    </select>
+
+    <label for="day">日:</label>
+    <select id="day" name="day" required>
+    </select>
+
     <button type="submit">確認</button>
 </form>
 <div id="output"></div>
 
 <script>
-    document.getElementById('charge-form').addEventListener('submit', async function (e) {
-        e.preventDefault();
-        const amount = document.getElementById('amount').value;
-        const category = document.getElementById('category').value;
-        const response = await fetch('/charge', {
+    document.getElementById('charge-form').addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData.entries());
+        console.log('提交的資料:', data);
+
+        fetch('/api/charge_add', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ amount, category })
-        });
-        const result = await response.json();
-        document.getElementById('output').innerText = JSON.stringify(result);
+            headers: {
+                'Content-Type': 'application/json',//我想看內容
+            },
+            body: JSON.stringify(data),
+        })
+            .then((response) => response.json())
+            .then((result) => {
+                const output = document.getElementById('output');
+                if (result.error) {
+                    output.textContent = `錯誤：${result.error}`;
+                } else {
+                    output.textContent = `成功新增資料，ID: ${result.id}`;
+                }
+            })
+            .catch((error) => {
+                console.error('新增資料時發生錯誤：', error);
+            });
     });
+
+
+    function updateDays() {
+        const year = document.getElementById('year').value;
+        const month = document.getElementById('month').value;
+        const daySelect = document.getElementById('day');
+
+        const daysInMonth = new Date(year, month, 0).getDate();
+
+        daySelect.innerHTML = '';
+        for (let day = 1; day <= daysInMonth; day++) {
+            const option = document.createElement('option');
+            option.value = day;
+            option.textContent = day;
+            daySelect.appendChild(option);
+        }
+    }
+
+    // Initialize days based on the current month and year
+    document.getElementById('year').addEventListener('change', updateDays);
+    document.getElementById('month').addEventListener('change', updateDays);
+    window.onload = updateDays;
+
+
 </script>
+
 </body>
 </html>
