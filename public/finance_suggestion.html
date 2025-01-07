@@ -2,9 +2,174 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>理財建議</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        #output {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
+<h1>理財建議</h1>
 
+
+<div id="output"></div>
+
+<label for="syear">年:</label>
+<select id="syear" name="syear" required onchange="get_type_month_cost()">
+    <script>
+        const scurrentYear = new Date().getFullYear();
+        for (let syear = scurrentYear; syear >= scurrentYear - 10; syear--) {
+            document.write(`<option value="${syear}">${syear}</option>`);
+        }
+    </script>
+</select>
+
+<label for="smonth">月:</label>
+<select id="smonth" name="smonth" required onchange="get_type_month_cost()">
+    <option value="1">1</option>
+    <option value="2">2</option>
+    <option value="3">3</option>
+    <option value="4">4</option>
+    <option value="5">5</option>
+    <option value="6">6</option>
+    <option value="7">7</option>
+    <option value="8">8</option>
+    <option value="9">9</option>
+    <option value="10">10</option>
+    <option value="11">11</option>
+    <option value="12">12</option>
+</select>
+
+<h3>累積資金: <span id="total_money">0</span></h3>
+<h3>該月支出資金: <span id="month_cost">0</span></h3>
+
+<h2>支出分配表</h2>
+<table id="cost-table">
+    <thead>
+    <tr>
+        <th>種類</th>
+        <th>花費</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- 動態新增的資料會出現在這裡 -->
+    </tbody>
+</table>
+
+<script>
+
+    function get_total_money() {
+        fetch('/api/get_total_money', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                update_total_money(data.totalCost);
+            })
+            .catch((error) => console.error('載入記錄時發生錯誤:', error));
+    }
+
+    function get_month_cost() {
+        const month = document.getElementById('smonth').value;
+        const year = document.getElementById('syear').value;
+
+        fetch('/api/get_month_cost', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                month: month,
+                year: year
+            }),
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                update_month_cost(data.totalCost);
+            })
+            .catch((error) => console.error('載入記錄時發生錯誤:', error));
+    }
+
+    function get_type_month_cost() {
+        const month = document.getElementById('smonth').value;
+        const year = document.getElementById('syear').value;
+
+        console.log(month);
+        console.log(year);
+
+        fetch('/api/get_type_month_cost', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                month: month,
+                year: year
+            }),
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                populatecostTable(data);
+            })
+            .catch((error) => console.error('載入記錄時發生錯誤:', error));
+    }
+
+    function populatecostTable(records) {
+        const tableBody = document.querySelector('#cost-table tbody');
+        tableBody.innerHTML = '';
+
+        console.log(records);
+
+        records.totalCostByType.forEach((record) => {
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td>${record.type}</td>
+                <td>${record.totalCost}</td>
+            `;
+            tableBody.appendChild(newRow);
+        });
+    }
+
+    function update_total_money(totalCost) {
+        document.getElementById('total_money').textContent = totalCost;
+    }
+
+    function update_month_cost(totalCost) {
+        document.getElementById('month_cost').textContent = totalCost;
+    }
+
+    function updateDays() {
+        const month = parseInt(document.getElementById('month').value, 10);
+        const year = parseInt(document.getElementById('year').value, 10);
+
+        const daysInMonth = new Date(year, month, 0).getDate();
+        const daySelect = document.getElementById('day');
+        daySelect.innerHTML = '';
+
+        for (let i = 1; i <= daysInMonth; i++) {
+            daySelect.innerHTML += `<option value="${i}">${i}</option>`;
+        }
+    }
+
+
+    window.onload = function () {
+        get_type_month_cost();
+        get_total_money();
+        get_month_cost();
+        updateDays();
+    };
+</script>
 </body>
 </html>

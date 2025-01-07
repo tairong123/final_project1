@@ -246,8 +246,9 @@ app.post('/api/get_type_month_cost', (req, res) => {
   const totalCostQuery = `
     SELECT type, SUM(cost) AS totalCost
     FROM charge
-    WHERE month=? AND year=?
-    GROUP BY type`;  // Group by type and sum costs
+    WHERE month=? AND year=? AND cost<0
+    GROUP BY type
+    ORDER BY totalCost ASC`;  // Group by type and sum costs
 
   const db = new sqlite3.Database(dbFile);
 
@@ -271,6 +272,35 @@ app.post('/api/get_type_month_cost', (req, res) => {
 
   db.close();
 });
+
+app.post('/api/finance_suggestion', (req, res) => {
+  const { totalMoney, monthlyExpense } = req.body;
+
+  if (totalMoney <= 0) {
+    return res.status(400).json({ error: '累積資金需大於 0' });
+  }
+
+  if (monthlyExpense <= 0) {
+    return res.status(400).json({ error: '無支出紀錄' });
+  }
+
+  // 模擬支出分配表
+  const expenseDistribution = [
+    { type: '食物', amount: monthlyExpense * 0.3 },
+    { type: '治裝', amount: monthlyExpense * 0.2 },
+    { type: '娛樂', amount: monthlyExpense * 0.1 },
+    { type: '其他', amount: monthlyExpense * 0.4 },
+  ];
+
+  // 模擬推薦理財產品
+  let recommendation = '建議您考慮低風險的定存或債券基金。';
+  if (totalMoney > 1000000) {
+    recommendation = '建議您考慮多元投資，包括股票、基金和房地產。';
+  }
+
+  res.json({ expenseDistribution, recommendation });
+});
+
 
 
 
