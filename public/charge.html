@@ -5,21 +5,122 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>資金管理</title>
     <style>
-        table {
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9; /* 柔和的背景色 */
+            color: #333;
+            line-height: 1.6;
+        }
+
+        h1, h2, h3 {
+            color: #444;
+        }
+
+        form {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* 增加陰影效果 */
+            max-width: 600px;
+            margin: 20px auto;
+        }
+
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        form label, form select, form input {
+            display: inline-block;
+            margin-right: 10px;
+            margin-bottom: 5px;
+        }
+
+        form select, form input {
+            width: 80px; /* 調整選單和輸入框的寬度 */
+        }
+
+        #charge-form {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        #charge-form label {
+            width: auto;
+            margin-bottom: 0;
+        }
+
+        input[type="number"], select {
             width: 100%;
-            border-collapse: collapse;
-            text-align: center;
-        }
-        th, td {
+            padding: 10px;
+            margin-bottom: 15px;
             border: 1px solid #ddd;
-            padding: 8px;
+            border-radius: 4px;
+            box-sizing: border-box;
         }
-        th {
-            background-color: #f4f4f4;
+
+        button {
+            background-color: #5cb85c; /* 綠色按鈕 */
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
         }
+        label, select {
+            display: inline-block;
+            margin-right: 10px; /* 可根據需要調整間距 */
+        }
+        #syear, #smonth {
+            width: 80px; /* 將年和月框格的寬度設為80px */
+        }
+
+        button:hover {
+            background-color: #4cae4c; /* 鼠標懸停效果 */
+        }
+
         #output {
             margin-top: 10px;
             font-weight: bold;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        #records-table, #cost-table {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* 增加陰影效果 */
+        }
+
+        #month_total_money, #total_money, #month_income, #month_cost {
+            color: #337ab7; /* 文字顏色改為藍色 */
+        }
+
+        #output.success {
+            background-color: #dff0d8; /* 成功訊息背景色 */
+            color: #3c763d;
+        }
+
+        #output.error {
+            background-color: #f2dede; /* 錯誤訊息背景色 */
+            color: #a94442;
         }
     </style>
 </head>
@@ -72,7 +173,7 @@
 </form>
 
 <div id="output"></div>
-
+<h2>記帳紀錄</h2>
 <label for="syear">年:</label>
 <select id="syear" name="syear" required onchange="get_total_month_money()">
     <script>
@@ -99,7 +200,7 @@
     <option value="12">12</option>
 </select>
 
-<h2>記帳紀錄</h2>
+
 <table id="records-table">
     <thead>
     <tr>
@@ -300,7 +401,7 @@
         records.forEach((record) => {
             const newRow = document.createElement('tr');
             newRow.innerHTML = `
-                <td>${record.cost}</td>
+                <td>${Math.abs(record.cost)}</td>
                 <td>${record.type}</td>
                 <td>${record.year}</td>
                 <td>${record.month}</td>
@@ -320,7 +421,7 @@
             const newRow = document.createElement('tr');
             newRow.innerHTML = `
                 <td>${record.type}</td>
-                <td>${record.totalCost}</td>
+                <td>${record.totalCost* -1}</td>
             `;
             tableBody.appendChild(newRow);
         });
@@ -339,7 +440,7 @@
     }
 
     function update_month_cost(totalCost) {
-        document.getElementById('month_cost').textContent = totalCost;
+        document.getElementById('month_cost').textContent = totalCost * -1;
     }
 
     function updateDays() {

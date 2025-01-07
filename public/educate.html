@@ -5,35 +5,72 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>金融產品教學</title>
   <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      color: #333;
+      margin: 20px;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      color: #007bff;
+    }
     #products {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 20px;
+      margin-top: 30px;
     }
     .product-button {
-      padding: 10px 20px;
+      padding: 15px;
       font-size: 16px;
       cursor: pointer;
       background-color: #007bff;
       color: white;
       border: none;
       border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: background-color 0.3s ease, transform 0.3s ease;
+    }
+    .product-button:hover {
+      background-color: #0056b3;
+      transform: scale(1.05);
+    }
+    .product-button img {
+      width: 24px;
+      height: 24px;
     }
     #product-info {
-      margin-top: 20px;
-      padding: 10px;
+      margin-top: 30px;
+      padding: 20px;
       border: 1px solid #ccc;
       border-radius: 5px;
+      background-color: #ffffff;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    #product-info.visible {
+      opacity: 1;
+      transform: translateY(0);
     }
     .back-button {
-      margin-top: 20px;
-      padding: 10px 20px;
+      margin-top: 40px;
+      padding: 12px 24px;
       font-size: 16px;
       cursor: pointer;
       background-color: #28a745;
       color: white;
       border: none;
       border-radius: 5px;
+      transition: background-color 0.3s ease;
+    }
+    .back-button:hover {
+      background-color: #218838;
     }
   </style>
 </head>
@@ -63,10 +100,22 @@
   Object.keys(products).forEach(product => {
     const button = document.createElement('button');
     button.className = 'product-button';
-    button.innerText = product;
+
+    // Add an image icon for each product (use placeholders or custom icons)
+
+
+    const text = document.createElement('span');
+    text.innerText = product;
+    button.appendChild(text);
+
     button.addEventListener('click', () => {
-      productInfo.innerText = products[product];
+      productInfo.innerHTML = `
+          <h2>${product}</h2>
+          <p>${products[product]}</p>
+        `;
+      productInfo.classList.add('visible');
     });
+
     productsContainer.appendChild(button);
   });
 </script>

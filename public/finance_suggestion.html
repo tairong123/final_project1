@@ -5,10 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>理財建議</title>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+            margin: 20px;
+            padding: 20px;
+        }
+        h1, h2, h3 {
+            text-align: center;
+            color: #007BFF;
+        }
+        label {
+            margin-right: 10px;
+        }
+        select, button {
+            padding: 5px 10px;
+            margin: 5px 0;
+            font-size: 16px;
+        }
         table {
             width: 100%;
             border-collapse: collapse;
-            text-align: center;
+            margin-top: 20px;
+            background-color: #fff;
         }
         th, td {
             border: 1px solid #ddd;
@@ -17,14 +37,51 @@
         th {
             background-color: #f4f4f4;
         }
-        #output {
-            margin-top: 10px;
-            font-weight: bold;
-        }
-        #finance-suggestion {
+        #output, #finance-suggestion {
             margin-top: 20px;
+            padding: 10px;
+            background-color: #e7f3fe;
+            border: 1px solid #b3d8ff;
+            border-radius: 5px;
+            text-align: center;
+        }
+        #suggestion-output p {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        .alert {
+            color: #d9534f;
             font-weight: bold;
         }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        #finance-button {
+            background-color: #007BFF;
+            color: white;
+        }
+
+        #finance-button:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+
+        button:last-of-type {
+            background-color: #28a645;
+            color: white;
+        }
+
+        button:last-of-type:hover {
+            background-color: #8ef18c;
+            transform: scale(1.05);
+        }
+
     </style>
 </head>
 <body>
@@ -58,8 +115,8 @@
     <option value="12">12</option>
 </select>
 
-<h3>累積資金: <span id="total_money">0</span></h3>
-<h3>該月支出資金: <span id="month_cost">0</span></h3>
+<h2>累積資金: <span id="total_money">0</span></h2>
+<h2>該月支出資金: <span id="month_cost">0</span></h2>
 
 <h2>支出分配表</h2>
 <table id="cost-table">
@@ -74,7 +131,6 @@
     </tbody>
 </table>
 
-<!-- 新增理財建議顯示區域 -->
 <div id="finance-suggestion">
     <h2>推薦理財產品</h2>
     <div id="suggestion-output"></div>
@@ -82,6 +138,7 @@
 
 <button id="finance-button" onclick="get_finance_suggestion()">理財建議</button>
 <button onclick="location.href='index.html'">回首頁</button>
+
 <script>
     function get_total_money() {
         fetch('/api/get_total_money', {
@@ -130,6 +187,7 @@
             .then((response) => response.json())
             .then((data) => {
                 populatecostTable(data);
+                check_no_expense(data);
             })
             .catch((error) => console.error('載入記錄時發生錯誤:', error));
     }
@@ -141,11 +199,22 @@
         records.totalCostByType.forEach((record) => {
             const newRow = document.createElement('tr');
             newRow.innerHTML = `
-                <td>${record.type}</td>
-                <td>${record.totalCost * -1}</td>
-            `;
+                    <td>${record.type}</td>
+                    <td>${record.totalCost * -1}</td>
+                `;
             tableBody.appendChild(newRow);
         });
+    }
+
+    function check_no_expense(data) {
+        if (data.totalCostByType.length === 0) {
+            const tableBody = document.querySelector('#cost-table tbody');
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                    <td colspan="2" class="alert">本月沒有支出記錄</td>
+                `;
+            tableBody.appendChild(newRow);
+        }
     }
 
     function update_total_money(totalCost) {
@@ -165,7 +234,6 @@
             return;
         }
 
-        // 獲取類別花費數據
         const month = document.getElementById('smonth').value;
         const year = document.getElementById('syear').value;
 
@@ -201,13 +269,12 @@
             .catch(error => console.error('載入記錄時發生錯誤:', error));
     }
 
-
     function display_finance_suggestion(data) {
         const suggestionOutput = document.getElementById('suggestion-output');
         suggestionOutput.innerHTML = `
-            <h3>理財產品建議</h3>
-            <p>${data.recommendation}</p>
-        `;
+                <h3>理財產品建議</h3>
+                <p>${data.recommendation}</p>
+            `;
     }
 
     window.onload = function () {
