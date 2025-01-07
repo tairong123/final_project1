@@ -131,7 +131,7 @@
     <!-- 動態新增的資料會出現在這裡 -->
     </tbody>
 </table>
-
+<button onclick="location.href='index.html'">回首頁</button>
 <script>
     document.getElementById('charge-form').addEventListener('submit', async function (event) {
         event.preventDefault();
@@ -140,9 +140,13 @@
         const data = Object.fromEntries(formData.entries());
 
         const cost = parseInt(data.cost, 10);
-        if (!Number.isInteger(cost)) {
-            const output = document.getElementById('output');
-            output.textContent = '錯誤：金額輸入須為正負整數';
+        const type = data.type;
+        const output = document.getElementById('output');
+
+        // 檢查金額是否為負數或正數
+        if ((['food', 'clothing', 'entertainment', 'others'].includes(type) && cost >= 0) ||
+            (['salary', 'bonus'].includes(type) && cost <= 0)) {
+            output.textContent = '錯誤：金額與項目不符合，請確認項目是否為正或負數';
             output.style.color = 'red';
             return;
         }
@@ -156,13 +160,14 @@
 
             const result = await response.json();
             if (result.error) {
-                document.getElementById('output').textContent = `錯誤：${result.error}`;
+                output.textContent = `錯誤：${result.error}`;
             } else {
-                document.getElementById('output').textContent = `成功新增資料`;
+                output.textContent = '成功新增資料';
+                output.style.color = 'green';
                 data.id = result.id;
                 addRecordToTable(data);
 
-                // After the data is added, run the following functions in sequence
+                // 依序執行資料更新函數
                 await get_type_month_cost();
                 await get_total_money();
                 await get_month_income();
@@ -172,6 +177,7 @@
             console.error('新增資料時發生錯誤:', error);
         }
     });
+
 
     function get_total_month_money() {
         get_month_income();

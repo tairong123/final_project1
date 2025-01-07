@@ -21,11 +21,14 @@
             margin-top: 10px;
             font-weight: bold;
         }
+        #finance-suggestion {
+            margin-top: 20px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
 <h1>理財建議</h1>
-
 
 <div id="output"></div>
 
@@ -71,8 +74,15 @@
     </tbody>
 </table>
 
-<script>
+<!-- 新增理財建議顯示區域 -->
+<div id="finance-suggestion">
+    <h2>推薦理財產品</h2>
+    <div id="suggestion-output"></div>
+</div>
 
+<button id="finance-button" onclick="get_finance_suggestion()">理財建議</button>
+<button onclick="location.href='index.html'">回首頁</button>
+<script>
     function get_total_money() {
         fetch('/api/get_total_money', {
             method: 'POST',
@@ -105,11 +115,9 @@
     }
 
     function get_type_month_cost() {
+        get_month_cost();
         const month = document.getElementById('smonth').value;
         const year = document.getElementById('syear').value;
-
-        console.log(month);
-        console.log(year);
 
         fetch('/api/get_type_month_cost', {
             method: 'POST',
@@ -130,13 +138,11 @@
         const tableBody = document.querySelector('#cost-table tbody');
         tableBody.innerHTML = '';
 
-        console.log(records);
-
         records.totalCostByType.forEach((record) => {
             const newRow = document.createElement('tr');
             newRow.innerHTML = `
                 <td>${record.type}</td>
-                <td>${record.totalCost}</td>
+                <td>${record.totalCost * -1}</td>
             `;
             tableBody.appendChild(newRow);
         });
@@ -147,28 +153,67 @@
     }
 
     function update_month_cost(totalCost) {
-        document.getElementById('month_cost').textContent = totalCost;
+        document.getElementById('month_cost').textContent = totalCost * -1;
     }
 
-    function updateDays() {
-        const month = parseInt(document.getElementById('month').value, 10);
-        const year = parseInt(document.getElementById('year').value, 10);
+    function get_finance_suggestion() {
+        const totalMoney = parseFloat(document.getElementById('total_money').textContent);
+        const monthlyExpense = parseFloat(document.getElementById('month_cost').textContent);
 
-        const daysInMonth = new Date(year, month, 0).getDate();
-        const daySelect = document.getElementById('day');
-        daySelect.innerHTML = '';
-
-        for (let i = 1; i <= daysInMonth; i++) {
-            daySelect.innerHTML += `<option value="${i}">${i}</option>`;
+        if (totalMoney <= 0) {
+            alert('累積資金需大於 0');
+            return;
         }
+
+        // 獲取類別花費數據
+        const month = document.getElementById('smonth').value;
+        const year = document.getElementById('syear').value;
+
+        fetch('/api/get_type_month_cost', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                month: month,
+                year: year
+            }),
+        })
+            .then(response => response.json())
+            .then(data => {
+                fetch('/api/finance_suggestion', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        totalMoney: totalMoney,
+                        monthlyExpense: monthlyExpense,
+                        expenseDistribution: data.totalCostByType
+                    }),
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            alert(data.error);
+                        } else {
+                            display_finance_suggestion(data);
+                        }
+                    })
+                    .catch(error => console.error('載入理財建議錯誤:', error));
+            })
+            .catch(error => console.error('載入記錄時發生錯誤:', error));
     }
 
+
+    function display_finance_suggestion(data) {
+        const suggestionOutput = document.getElementById('suggestion-output');
+        suggestionOutput.innerHTML = `
+            <h3>理財產品建議</h3>
+            <p>${data.recommendation}</p>
+        `;
+    }
 
     window.onload = function () {
         get_type_month_cost();
         get_total_money();
         get_month_cost();
-        updateDays();
     };
 </script>
 </body>

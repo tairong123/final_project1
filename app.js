@@ -274,33 +274,33 @@ app.post('/api/get_type_month_cost', (req, res) => {
 });
 
 app.post('/api/finance_suggestion', (req, res) => {
-  const { totalMoney, monthlyExpense } = req.body;
+  const { totalMoney, monthlyExpense, expenseDistribution } = req.body;
 
   if (totalMoney <= 0) {
     return res.status(400).json({ error: '累積資金需大於 0' });
   }
 
-  if (monthlyExpense <= 0) {
-    return res.status(400).json({ error: '無支出紀錄' });
-  }
-
-  // 模擬支出分配表
-  const expenseDistribution = [
-    { type: '食物', amount: monthlyExpense * 0.3 },
-    { type: '治裝', amount: monthlyExpense * 0.2 },
-    { type: '娛樂', amount: monthlyExpense * 0.1 },
-    { type: '其他', amount: monthlyExpense * 0.4 },
-  ];
-
-  // 模擬推薦理財產品
+  // 找出花費最高的類別
+  const highestExpense = expenseDistribution.reduce((max, item) => (item.totalCost < max.totalCost ? item : max), expenseDistribution[0]);
+  console.log('Highest Expense:', highestExpense);
+  // 根據最高花費類別給出建議
   let recommendation = '建議您考慮低風險的定存或債券基金。';
-  if (totalMoney > 1000000) {
-    recommendation = '建議您考慮多元投資，包括股票、基金和房地產。';
+  const absoluteTotalMoney = Math.abs(totalMoney);
+  if (absoluteTotalMoney > 7000) {
+    recommendation = '考慮進行長期投資，如股票或投資型保單。';
   }
 
-  res.json({ expenseDistribution, recommendation });
-});
+  if (highestExpense.type === 'food') {
+    recommendation += ' 您這個月在食物上的花費較高，建議考慮調整飲食開支以增加儲蓄或進行小額投資。';
+  } else if (highestExpense.type === 'entertainment') {
+    recommendation += ' 您這個月在娛樂上的花費較高，建議適度控制娛樂開支以進行更長期的財務規劃。';
+  } else if (highestExpense.type === 'clothing') {
+    recommendation += ' 您這個月在衣著上的花費較高，建議適度控制著裝開支以進行更長期的財務規劃。';
+  }
+  recommendation += '如果想學習更多請至金融產品教學頁面查詢';
 
+  return res.json({ expenseDistribution, recommendation });
+});
 
 
 
